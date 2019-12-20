@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load formatting_tags %}
+{% load humanize %}
+
+{% block content %}
+    <h1>Holding: {{ holding.ticker }}</h1>
+    <a href="{% url 'trade_shares' holding=holding.ticker %}?next={{ request.path|urlencode }}" class="btn btn-info"
+       role="button">Trade Shares</a>
+    <a href="{% url 'home' %}" class="btn btn-warning" role="button">Back</a>
+    <p>Shares Available: {{ total_shares|intcomma }}</p>
+    <table class="table table-striped">
+        <tr class="holdings_table">
+            <th>Date Acquired</th>
+            <th>Quantity</th>
+            <th>Cost Basis</th>
+            <th>Term</th>
+        </tr>
+        {% for position in holding.positions.all %}
+            <tr>
+                <td class="text-left">{{ position.acquired|date_only }}</td>
+                <td class="text-left">{{ position.quantity|intcomma }}</td>
+                <td class="text-left">${{ position.cost_basis }}</td>
+                <td class="text-left">
+                    {% if position.is_shortterm %}
+                        Short
+                    {% else %}
+                        Long
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

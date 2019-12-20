@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load formatting_tags %}
+{% load humanize %}
+
+{% block content %}
+    {% if messages %}
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    {% endif %}
+    <h4><strong>Holdings</strong></h4>
+    <a href="{% url 'new_holding' %}">+ New Holding</a>
+    <table class="table table-striped">
+        <tr class="holdings_table">
+            <th>Ticker</th>
+            <th>Shares Owned</th>
+            <th>Trade</th>
+        </tr>
+    {% for holding in holdings %}
+        <tr>
+            <td class="text-left"><a href="{% url 'holding' holding=holding.ticker %}">{{ holding.ticker }}</a></td>
+            <td class="text-left">{{ holding|get_total_shares|intcomma }}</td>
+            <td class="text-left"><a href="{% url 'trade_shares' holding=holding.ticker %}?next={{ request.path|urlencode }}">Trade</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+    <a href="{% url 'reset_holdings' %}">Reset Holdings</a>
+{% endblock %}

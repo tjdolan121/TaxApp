@@ -1,0 +1,194 @@
+{% load static %}
+{% load humanize %}
+{% load formatting_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="{% static "css/main.css" %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="{% url 'home' %}">Simple Tax Calculator</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">{{ user.email }}</a></li>
+                <li><a href="{% url 'logout' %}">Sign Out</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{% block header %}
+    <div class="jumbotron">
+        <h1 style="text-align: center"><a href="{% url 'home' %}">Simple Tax Calculator</a></h1>
+    </div>
+{% endblock %}
+
+<div class="container-fluid text-center">
+    <div class="row content">
+        <div class="col-sm-6 sidenav">
+            {% block sidenav-left %}
+                <h4>Net Captial Gains vs. Target</h4>
+                <canvas id="account_over_time"></canvas><hr>
+                <h4>Account Balances</h4>
+                <table class="table table-striped">
+                    <tr id="accounts_table">
+                        <th>Cash</th>
+                        <th>Capital Gains</th>
+                        <th>Capital Losses</th>
+                        <th>Net Capital Gains</th>
+                    </tr>
+                    <tr>
+                        <td class="text-left">${{ account.cash|intcomma }}</td>
+                        <td class="text-left">${{ account.capital_gains|intcomma }}</td>
+                        <td class="text-left">${{ account.capital_losses|intcomma }}</td>
+                        <td class="text-left"><b>${{ account.net_capital_gains|intcomma }}</b></td>
+                    </tr>
+                </table>
+
+                <hr>
+                <h4>Sales</h4>
+                <table class="table table-striped">
+                    <tr id="sales_table">
+                        <th>Date</th>
+                        <th>Holding</th>
+                        <th>Type</th>
+                        <th>Sale Quantity</th>
+                        <th>Sale Price</th>
+                        <th>Cash After Sale</th>
+                        <th>Capital Gains After Sale</th>
+                        <th>Capital Losses After Sale</th>
+                    </tr>
+                    {% for sale in user.sales.all|slice:":10" %}
+                        <tr>
+                            <td class="text-left">{{ sale.date|date_only }}</td>
+                            <td class="text-left"><b>{{ sale.holding.ticker }}</b></td>
+                            <td class="text-left">{{ sale.type }}</td>
+                            <td class="text-left">{{ sale.sale_quantity|intcomma }}</td>
+                            <td class="text-left">${{ sale.sale_price|intcomma }}</td>
+                            <td class="text-left">${{ sale.cash_after_sale|intcomma }}</td>
+                            <td class="text-left">${{ sale.capital_gains_after_sale|intcomma }}</td>
+                            <td class="text-left">${{ sale.capital_losses_after_sale|intcomma }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endblock %}
+        </div>
+
+
+        <div class="col-sm-6">
+            <h4>Portfolio Diversification</h4>
+            <canvas id="diversification"></canvas>
+            <hr>
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+    </div>
+</div>
+
+<div class="footer">
+    <div class="container text-center">
+        <p>Simple Tax Calculator</p>
+    </div>
+</div>
+
+<script>
+
+    var color = [];
+
+    var dynamicColors = function () {
+        var r = Math.floor(Math.random() * 255);
+        var g = Math.floor(Math.random() * 255);
+        var b = Math.floor(Math.random() * 255);
+        return "rgb(" + r + "," + g + "," + b + ")";
+    };
+
+    for (var i in [{% for holding in holdings %}'{{ holding.ticker }}',{% endfor %}]) {
+        color.push(dynamicColors());
+    }
+
+    var chart1Data = {
+
+        labels: [{% for holding in holdings %}'{{ holding.ticker }}',{% endfor %}],
+        datasets: [{
+            label: 'Portfolio Diversification',
+            //strokeColor:backGround,
+
+            backgroundColor: color,
+
+            borderColor: color,
+            //hoverBackgroundColor: 'rgba(200, 200, 200, 1)',
+            hoverBorderColor: 'rgba(200, 200, 200, 1)',
+            data: [{% for holding in holdings %}'{{ holding|get_total_shares }}',{% endfor %}]
+        }]
+    };
+
+    var ctx = document.getElementById('diversification').getContext('2d');
+    var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'doughnut',
+        data: chart1Data
+    })
+
+</script>
+<script>
+
+    var chart2Data = {
+        labels: [{% for sale in user.sales.all reversed %}'{{ sale.date|date_only }}', {% endfor %}],
+        datasets: [{
+            label: 'Net Capital Gains',
+            backgroundColor: 'rgba(200, 1, 200, 0.1)',
+            data: [{% for sale in user.sales.all reversed %}'{{ sale.net_capital_gains_after_sale }}', {% endfor %}]
+        }, {
+            label: 'Target',
+            backgroundColor: 'rgba(1, 200, 200, 0.1)',
+            data: [{% for sale in user.sales.all reversed %}'{{ sale.target }}', {% endfor %}]
+        },
+        ]
+    };
+
+    var ctx = document.getElementById('account_over_time').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: chart2Data,
+    });
+
+</script>
+
+</body>
+</html>
+
+
+{#        var ctx = document.getElementById('myChart').getContext('2d');#}
+{#        var chart = new Chart(ctx, {#}
+{#            // The type of chart we want to create#}
+{#            type: 'doughnut',#}
+{##}
+{#            // The data for our dataset#}
+{#            data: {#}
+{#                labels: [{% for holding in holdings %}'{{ holding.ticker }}',{% endfor %}],#}
+{#                datasets: [{#}
+{#                    label: 'Portfolio Diversification',#}
+{#                    backgroundColor: 'rgb(99,168,102)',#}
+{#                    borderColor: 'rgb(0,0,0)',#}
+{#                    data: [{% for holding in holdings %}'{{ holding|get_total_shares }}',{% endfor %}]#}
+{#                }]#}
+{#            },#}
+{##}
+{#            // Configuration options go here#}
+{#            options: {}#}
+{#        });#}

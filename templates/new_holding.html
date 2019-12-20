@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    New Holding
+{% endblock %}
+
+
+{% block content %}
+    <h1>New Holding</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <input type="submit" class="btn btn-default" value="Submit">
+    </form>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Log In{% endblock %}
+
+{% block header %}
+    <div class="jumbotron">
+        <h2 style="text-align: center">Welcome to the Network Monitoring Center</h2>
+        <p style="text-align: center">Real time network information for deployed units.  Anytime. Anywhere.</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <h2>Please Log In</h2><br>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" class="btn btn-info" value="Log In"><br><br>
+        <a href="{% url 'password_reset' %}">Forgot Your Password?</a>
+    </form><hr>
+    <p>First time here?</p><a href="{% url 'signup' %}" class="btn btn-success" role="button">Sign Up!</a><br>
+{% endblock %}

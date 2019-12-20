@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    Trade Shares
+{% endblock %}
+
+
+{% block content %}
+    <h1><a href="{% url 'holding' holding=holding.ticker %}">{{ holding.ticker }}</a> | Trade Shares</h1>
+    <p>Shares Available: {{ total_shares|intcomma }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+        <input type="submit" class="btn btn-default" value="Submit">
+    </form>
+    <hr>
+    <a href="{% url 'holding' holding=holding.ticker %}" class="btn btn-warning" role="button">Back</a>
+{% endblock %}

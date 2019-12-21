@@ -1,15 +1,23 @@
 {% extends 'registration/registration_base.html' %}
+{% load static %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+{% load formatting_tags %}
 
 {% block title %}Sign Up{% endblock %}
 
-
 {% block content %}
     <div class="container">
-        <h2>Sign Up</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Sign Up</button>
-        </form>
+        <div class="col-md-offset-3">
+            <div class="col-md-8">
+                <h1>Sign Up!</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <input type="submit" class="btn btn-info" value="Sign Up!">
+                </form>
+            </div>
+        </div>
     </div>
 {% endblock %}
+

@@ -1,22 +1,25 @@
 {% extends 'registration/registration_base.html' %}
+{% load static %}
 {% load humanize %}
 {% load crispy_forms_tags %}
-{% block content %}
-
-
+{% load formatting_tags %}
 
 {% block title %}Login{% endblock %}
-<div class="container">
-<h1>Login</h1>
 
-
-    <h2>Please Log In</h2><br>
-    <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <input type="submit" class="btn btn-info" value="Log In"><br><br>
-        <a href="{% url 'password_reset' %}">Forgot Your Password?</a>
-    </form><hr>
-    <p>First time here?</p><a href="{% url 'signup' %}" class="btn btn-success" role="button">Sign Up!</a><br>
-</div>
+{% block content %}
+    <div class="container">
+        <div class="col-md-offset-4">
+            <div class="col-md-6">
+                <h1>Login</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <input type="submit" class="btn btn-info" value="Log In"><a href="{% url 'signup' %}"
+                                                                                class="btn btn-success" role="button">Sign
+                    Up!</a><br><br>
+                    <a href="{% url 'password_reset' %}">Forgot Your Password?</a>
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}

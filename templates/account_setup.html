@@ -1,0 +1,18 @@
+{% extends 'registration/registration_base.html' %}
+{% load humanize %}
+{% load crispy_forms_tags %}
+
+{% block title %}Account Setup{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <h2>Account Setup</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <input type="submit" class="btn btn-default" value="Submit">
+        </form>
+    </div>
+{% endblock %}

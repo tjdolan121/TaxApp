@@ -1,31 +1,27 @@
-from django.shortcuts import render, HttpResponseRedirect, redirect
+from django.shortcuts import render, HttpResponseRedirect, redirect, HttpResponse
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 import datetime
 from .models import Account, Holding, Position, Sale
-from .forms import SaleForm, HoldingForm
+from .forms import SaleForm, HoldingForm, AccountForm
 
 
 # --------------------------- View functions ---------------------------|
 
-
-def base_view(request):
-    user = request.user
-    account = Account.objects.get(user=user)
-    holdings = list(Holding.objects.filter(account=account))
-    return render(request, template_name='base.html', context={'account': account,
-                                                               'holdings': holdings,
-                                                               'user': user})
-
-
+@login_required
 def home_view(request):
-    user = request.user
-    account = Account.objects.get(user=user)
-    holdings = account.holdings.all()
-    return render(request, template_name='home.html', context={'user': user,
-                                                               'account': account,
-                                                               'holdings': holdings})
+    try:
+        user = request.user
+        account = Account.objects.get(user=user)
+        holdings = account.holdings.all()
+        return render(request, template_name='home.html', context={'user': user,
+                                                                   'account': account,
+                                                                   'holdings': holdings})
+    except Account.DoesNotExist:
+        return redirect('/account_setup/')
 
 
+@login_required
 def holding_view(request, holding):
     user = request.user
     account = Account.objects.get(user=user)
@@ -39,6 +35,7 @@ def holding_view(request, holding):
                                                                   'total_shares': total_shares})
 
 
+@login_required
 def reset_holdings_view(request):
     user = request.user
     if request.method == "POST":
@@ -49,6 +46,27 @@ def reset_holdings_view(request):
     return render(request, 'reset_holdings.html')
 
 
+@login_required
+def account_setup_view(request):
+    user = request.user
+    next = request.POST.get('next', '/')
+    if request.method == 'POST':
+        account_form = AccountForm(data=request.POST)
+        if account_form.is_valid():
+            new_account = account_form.save(commit=False)
+            new_account.user = user
+            new_account.cash = account_form.cleaned_data['cash']
+            new_account.capital_gains = account_form.cleaned_data['capital_gains']
+            new_account.capital_losses = account_form.cleaned_data['capital_losses']
+            new_account.save()
+            return HttpResponseRedirect(next)
+    else:
+        account_form = AccountForm()
+    return render(request, template_name='account_setup.html', context={'user': user,
+                                                                        'form': account_form})
+
+
+@login_required
 def create_holding_view(request):
     user = request.user
     account = Account.objects.get(user=user)
@@ -72,6 +90,7 @@ def create_holding_view(request):
                                                                       'form': holding_form})
 
 
+@login_required
 def trade_shares_view(request, holding):
     user = request.user
     account = Account.objects.get(user=user)
